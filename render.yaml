@@ -1,0 +1,32 @@
+services:
+  # Django Backend
+  - type: web
+    name: lineage-archive-backend
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "lineage-archive-backend.onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://lineage-archive.onrender.com"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+  # React Frontend (static site)
+  - type: web
+    name: lineage-archive
+    env: static
+    buildCommand: "cd frontend && npm ci && npm run build"
+    staticPublishPath: "./frontend/dist"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: "https://lineage-archive-backend.onrender.com/api"
